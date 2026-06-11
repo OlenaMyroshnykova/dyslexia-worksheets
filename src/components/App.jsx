@@ -92,15 +92,10 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          <span className="logo" aria-hidden>🦁</span>
-          <h1>Fichas de dislexia</h1>
-        </div>
-      </header>
-
-      {/* Single-row toolbar: type dropdown · Mezclar · Add · Download */}
+      {/* Single-row toolbar: title · type dropdown · Mezclar · Add · Download */}
       <div className="toolbar">
+        <h1 className="toolbar-title">Fichas de dislexia</h1>
+
         <label className="toolbar-field">
           <span className="toolbar-label">FICHA</span>
           <select
