@@ -1,43 +1,98 @@
-/* basket.css — toolbar, two-column layout, PDF basket & page preview
-   Standalone styles; reuses the dyslexia-friendly variables from styles.css. */
+/* basket.css — single-row toolbar, two-column layout, PDF basket & preview
+   Colors sampled from the reference panel image. Reuses dyslexia-friendly
+   variables from styles.css. */
 
-/* ---- top toolbar: regenerate + add (left) · download (right) ---- */
+/* ---- colors from the reference image ---- */
+:root {
+  --btn-blue: #4498e0;
+  --btn-orange: #fbd38e;
+  --btn-orange-ink: #824c1d;
+  --btn-green: #9ae6b5;
+  --btn-green-ink: #14502a;
+}
+
+/* ---- single-row toolbar ---- */
 .toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
   margin: 4px 0 16px;
 }
-.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; }
-.toolbar-right { display: flex; }
 
-.action {
+.toolbar-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.toolbar-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.ficha-select {
   font-family: inherit;
-  cursor: pointer;
-  background: var(--card);
-  border: 2px solid var(--rule);
-  color: var(--ink);
-  border-radius: 999px;
-  padding: 12px 22px;
   font-size: 1rem;
   font-weight: 600;
+  color: var(--ink);
+  background: var(--card);
+  border: 2px solid var(--rule);
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.12s, border-color 0.2s, background 0.2s;
 }
-.action:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
-.action:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+.ficha-select:hover { border-color: var(--btn-blue); }
+.ficha-select:focus { outline: none; border-color: var(--btn-blue); }
 
-.primary-action {
-  background: var(--accent);
-  border-color: var(--accent);
+/* ---- shared button base ---- */
+.btn {
+  font-family: inherit;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: var(--shadow);
+  transition: transform 0.12s, filter 0.2s, opacity 0.2s;
+}
+.btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(0.97); }
+.btn:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+
+/* Mezclar — orange with dark-brown text (matches the image) */
+.btn-mezclar {
+  background: var(--btn-orange);
+  color: var(--btn-orange-ink);
+}
+
+/* Add to PDF — blue (the active-accent color from the image) */
+.btn-add {
+  background: var(--btn-blue);
   color: #fff;
 }
-.primary-action:hover:not(:disabled) { background: #3f7fc4; border-color: #3f7fc4; }
 
-.action.danger { color: #c0556c; }
-.action.danger:hover:not(:disabled) { border-color: #c0556c; background: #fdeef1; }
+/* Download / print — green (matches "Imprimir" on the image) */
+.btn-print {
+  background: var(--btn-green);
+  color: var(--btn-green-ink);
+}
+
+/* neutral + danger (used in the preview bar) */
+.btn-light {
+  background: var(--card);
+  color: var(--ink);
+  border-color: var(--rule);
+}
+.btn-light:hover:not(:disabled) { border-color: var(--btn-blue); }
+.btn-danger {
+  background: var(--card);
+  color: #c0556c;
+  border-color: var(--rule);
+}
+.btn-danger:hover:not(:disabled) { border-color: #c0556c; background: #fdeef1; }
 
 /* ---- two-column layout ---- */
 .layout {
@@ -47,8 +102,6 @@
   align-items: start;
   flex: 1;
 }
-
-/* stage already styled in styles.css; ensure it fills its column */
 .layout .stage { margin: 0; min-height: 420px; }
 
 /* ---- PDF basket (right column) ---- */
@@ -61,7 +114,6 @@
   position: sticky;
   top: 12px;
 }
-
 .basket-head {
   display: flex;
   align-items: center;
@@ -70,13 +122,9 @@
   flex-wrap: wrap;
 }
 .basket-count { font-size: 1.05rem; }
-.basket-count b { color: var(--accent); font-size: 1.2rem; }
+.basket-count b { color: var(--btn-blue); font-size: 1.2rem; }
 
-.basket-empty {
-  color: var(--muted);
-  font-size: 0.95rem;
-  margin: 12px 0 2px;
-}
+.basket-empty { color: var(--muted); font-size: 0.95rem; margin: 12px 0 2px; }
 
 .basket-list {
   list-style: none;
@@ -98,9 +146,8 @@
   border: 2px solid transparent;
   transition: border-color 0.2s;
 }
-.basket-item.active { border-color: var(--accent); }
+.basket-item.active { border-color: var(--btn-blue); }
 
-/* the clickable area that opens the preview */
 .basket-open {
   flex: 1;
   text-align: left;
@@ -111,7 +158,7 @@
   padding: 8px 8px;
   border-radius: 10px;
 }
-.basket-open:hover { background: rgba(74, 144, 217, 0.10); }
+.basket-open:hover { background: rgba(68, 152, 224, 0.10); }
 
 .basket-type { font-weight: 600; }
 .basket-type::before {
@@ -147,7 +194,7 @@
 }
 .preview-title { font-weight: 600; color: var(--ink); }
 .preview-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.preview-actions .action { padding: 9px 16px; font-size: 0.9rem; }
+.preview-actions .btn { padding: 9px 16px; font-size: 0.9rem; }
 
 .preview-frame {
   width: 100%;
@@ -158,11 +205,10 @@
   background: var(--cream);
 }
 
-/* ---- phone: stack to one column, basket drops below the exercise ---- */
+/* ---- phone: stack to one column ---- */
 @media (max-width: 720px) {
   .layout { grid-template-columns: 1fr; }
   .basket { position: static; }
-  .toolbar { justify-content: stretch; }
-  .toolbar-left, .toolbar-right { flex: 1; }
-  .toolbar-right .action { width: 100%; }
+  .toolbar-field { flex: 1; }
+  .ficha-select { flex: 1; }
 }

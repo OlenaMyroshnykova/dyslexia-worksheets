@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { buildRound, LEVELS, randomSeed } from '../lib/generator.js';
+import { buildRound, randomSeed } from '../lib/generator.js';
 import { downloadPdf, buildPdf } from '../lib/pdf.js';
 import FindLetter from './FindLetter.jsx';
 import ColorLetter from './ColorLetter.jsx';
@@ -18,16 +18,23 @@ const EXERCISE_VIEWS = {
 
 const CHEERS = ['¡Muy bien!', '¡Genial!', '¡Lo lograste!', '¡Buen trabajo!', '¡Eres un crack!'];
 
-const TYPE_LABELS = {
-  'find-letter': 'Encuentra la letra',
-  'color-letter': 'Colorea por letra',
-  'grid-count': 'Cuenta las letras',
-  'cross-reversed': 'Letras al revés',
-  'choose-word': 'Palabra correcta',
-};
+// Exercise types chosen directly from a dropdown. Each carries the difficulty
+// `level` that keeps the exercise meaningful (e.g. find-letter at level 2 uses
+// confusable pairs b/d, p/q rather than one easy letter; color-letter at
+// level 3 includes the "cross out the extra" letter).
+const TYPES = [
+  { value: 'find-letter', label: 'Encuentra la letra', level: 2 },
+  { value: 'color-letter', label: 'Colorea por letra', level: 3 },
+  { value: 'grid-count', label: 'Cuenta las letras', level: 2 },
+  { value: 'cross-reversed', label: 'Letras al revés', level: 3 },
+  { value: 'choose-word', label: 'Palabra correcta', level: 4 },
+];
+
+const TYPE_LABELS = Object.fromEntries(TYPES.map((t) => [t.value, t.label]));
+const TYPE_LEVEL = Object.fromEntries(TYPES.map((t) => [t.value, t.level]));
 
 export default function App() {
-  const [level, setLevel] = useState(1);
+  const [type, setType] = useState(TYPES[0].value);
   const [seed, setSeed] = useState(randomSeed());
   const [done, setDone] = useState(false);
 
@@ -37,17 +44,32 @@ export default function App() {
   // Which basket page is previewed in the left area (null = play mode).
   const [previewKey, setPreviewKey] = useState(null);
 
-  const round = useMemo(() => buildRound({ level, seed }), [level, seed]);
+  const round = useMemo(
+    () => buildRound({ type, level: TYPE_LEVEL[type], seed }),
+    [type, seed]
+  );
   const View = EXERCISE_VIEWS[round.type];
 
-  function regenerate() {
+  // "Mezclar" — shuffle: a fresh seed regenerates the current exercise type
+  // with new positions and target letters.
+  function mezclar() {
     setDone(false);
     setPreviewKey(null);
     setSeed(randomSeed());
   }
 
+  function changeType(value) {
+    setType(value);
+    setPreviewKey(null);
+    setSeed(randomSeed());
+    setDone(false);
+  }
+
   function addToPdf() {
-    setBasket((b) => [...b, { ...round, _key: `${round.seed}-${b.length}-${Math.random().toString(36).slice(2, 7)}` }]);
+    setBasket((b) => [
+      ...b,
+      { ...round, _key: `${round.seed}-${b.length}-${Math.random().toString(36).slice(2, 7)}` },
+    ]);
   }
 
   function removeFromBasket(key) {
@@ -77,43 +99,35 @@ export default function App() {
         </div>
       </header>
 
-      {/* Top toolbar: regenerate + add (left) .... download (right) */}
+      {/* Single-row toolbar: type dropdown · Mezclar · Add · Download */}
       <div className="toolbar">
-        <div className="toolbar-left">
-          <button className="action" onClick={regenerate}>
-            🔄 Otra ficha
-          </button>
-          <button className="action primary-action" onClick={addToPdf}>
-            ➕ Añadir al PDF
-          </button>
-        </div>
-        <div className="toolbar-right">
-          <button
-            className="action"
-            onClick={downloadBasket}
-            disabled={basket.length === 0}
+        <label className="toolbar-field">
+          <span className="toolbar-label">FICHA</span>
+          <select
+            className="ficha-select"
+            value={type}
+            onChange={(e) => changeType(e.target.value)}
           >
-            ⬇️ Descargar PDF{basket.length ? ` (${basket.length})` : ''}
-          </button>
-        </div>
-      </div>
+            {TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <nav className="levels" aria-label="Niveles">
-        {Object.entries(LEVELS).map(([n, info]) => (
-          <button
-            key={n}
-            className={`chip ${Number(n) === level ? 'on' : ''}`}
-            onClick={() => {
-              setLevel(Number(n));
-              setPreviewKey(null);
-              setSeed(randomSeed());
-              setDone(false);
-            }}
-          >
-            <b>{n}</b> {info.label}
-          </button>
-        ))}
-      </nav>
+        <button className="btn btn-mezclar" onClick={mezclar}>
+          🔀 Mezclar
+        </button>
+
+        <button className="btn btn-add" onClick={addToPdf}>
+          ➕ Añadir al PDF
+        </button>
+
+        <button className="btn btn-print" onClick={downloadBasket} disabled={basket.length === 0}>
+          🖨 Descargar PDF{basket.length ? ` (${basket.length})` : ''}
+        </button>
+      </div>
 
       {/* Two columns: stage / preview on the left, page list on the right */}
       <div className="layout">
@@ -128,8 +142,8 @@ export default function App() {
           ) : done ? (
             <div className="cheer">
               <p className="cheer-big">{CHEERS[seed % CHEERS.length]}</p>
-              <button className="primary" onClick={regenerate}>
-                Otra ficha
+              <button className="btn btn-mezclar" onClick={mezclar}>
+                🔀 Mezclar
               </button>
             </div>
           ) : (
@@ -218,7 +232,6 @@ function PdfPreview({ exercise, index, onClose, onRemove }) {
     }
 
     build();
-    // Rebuild after fonts load so canvas-drawn glyphs use Lexend.
     if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => {
         if (!cancelled) build();
@@ -238,10 +251,10 @@ function PdfPreview({ exercise, index, onClose, onRemove }) {
           Página {index} · {TYPE_LABELS[exercise.type] || exercise.type}
         </span>
         <div className="preview-actions">
-          <button className="action" onClick={onClose}>
+          <button className="btn btn-light" onClick={onClose}>
             ↩ Volver a jugar
           </button>
-          <button className="action danger" onClick={onRemove}>
+          <button className="btn btn-danger" onClick={onRemove}>
             🗑 Quitar
           </button>
         </div>
