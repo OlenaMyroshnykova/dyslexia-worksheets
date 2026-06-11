@@ -35,7 +35,7 @@ body {
 }
 
 .app {
-  max-width: 880px;
+  max-width: auto;
   margin: 0 auto;
   padding: 20px 18px 40px;
   display: flex;
