@@ -1,15 +1,17 @@
-/* basket.css — action bar + PDF basket
-   Standalone styles for the regenerate / add-to-PDF / download flow.
-   Reuses the dyslexia-friendly variables from styles.css. */
+/* basket.css — toolbar, two-column layout, PDF basket & page preview
+   Standalone styles; reuses the dyslexia-friendly variables from styles.css. */
 
-/* ---- action bar (regenerate · add to PDF) ---- */
-.actionbar {
+/* ---- top toolbar: regenerate + add (left) · download (right) ---- */
+.toolbar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  justify-content: center;
   flex-wrap: wrap;
-  margin: 18px 0 10px;
+  margin: 4px 0 16px;
 }
+.toolbar-left { display: flex; gap: 12px; flex-wrap: wrap; }
+.toolbar-right { display: flex; }
 
 .action {
   font-family: inherit;
@@ -34,14 +36,30 @@
 }
 .primary-action:hover:not(:disabled) { background: #3f7fc4; border-color: #3f7fc4; }
 
-/* ---- PDF basket ---- */
+.action.danger { color: #c0556c; }
+.action.danger:hover:not(:disabled) { border-color: #c0556c; background: #fdeef1; }
+
+/* ---- two-column layout ---- */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 18px;
+  align-items: start;
+  flex: 1;
+}
+
+/* stage already styled in styles.css; ensure it fills its column */
+.layout .stage { margin: 0; min-height: 420px; }
+
+/* ---- PDF basket (right column) ---- */
 .basket {
   background: var(--card);
   border: 2px solid var(--rule);
   border-radius: var(--r);
   padding: 16px 18px;
-  margin-top: 8px;
   box-shadow: var(--shadow);
+  position: sticky;
+  top: 12px;
 }
 
 .basket-head {
@@ -53,8 +71,6 @@
 }
 .basket-count { font-size: 1.05rem; }
 .basket-count b { color: var(--accent); font-size: 1.2rem; }
-
-.basket-actions { display: flex; align-items: center; gap: 12px; }
 
 .basket-empty {
   color: var(--muted);
@@ -74,13 +90,29 @@
 .basket-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
   background: var(--cream);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 4px 8px 4px 4px;
   counter-increment: ficha;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
 }
+.basket-item.active { border-color: var(--accent); }
+
+/* the clickable area that opens the preview */
+.basket-open {
+  flex: 1;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 8px 8px;
+  border-radius: 10px;
+}
+.basket-open:hover { background: rgba(74, 144, 217, 0.10); }
+
 .basket-type { font-weight: 600; }
 .basket-type::before {
   content: counter(ficha) '. ';
@@ -88,15 +120,49 @@
   font-weight: 700;
   margin-right: 4px;
 }
+
 .basket-remove {
   font-family: inherit;
   cursor: pointer;
   border: none;
   background: transparent;
   color: var(--muted);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1;
-  padding: 4px 8px;
+  padding: 6px 8px;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 .basket-remove:hover { color: var(--pink); background: #fdeef1; }
+
+/* ---- page preview (replaces the stage in place) ---- */
+.preview { display: flex; flex-direction: column; height: 100%; }
+.preview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.preview-title { font-weight: 600; color: var(--ink); }
+.preview-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.preview-actions .action { padding: 9px 16px; font-size: 0.9rem; }
+
+.preview-frame {
+  width: 100%;
+  flex: 1;
+  min-height: 460px;
+  border: 2px solid var(--rule);
+  border-radius: 12px;
+  background: var(--cream);
+}
+
+/* ---- phone: stack to one column, basket drops below the exercise ---- */
+@media (max-width: 720px) {
+  .layout { grid-template-columns: 1fr; }
+  .basket { position: static; }
+  .toolbar { justify-content: stretch; }
+  .toolbar-left, .toolbar-right { flex: 1; }
+  .toolbar-right .action { width: 100%; }
+}
